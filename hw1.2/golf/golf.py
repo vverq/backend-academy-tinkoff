@@ -70,14 +70,7 @@ class HitsMatch(Match):
             self.current_player = self.players_iterator.__next__().name
         player_number = self.players_numbers[self.current_player]
         if self.is_all_players_get_score(self.current_hole):
-            if self.current_hole == self.countHoles:
-                self.finished = True
-                return
-            self.current_count_hits = {
-                player.name: 0 for player in self.players
-            }
-            self.changed_player = True
-            self.current_hole += 1
+            self.change_hole()
         if not self.is_player_wins_hole(self.current_hole, player_number):
             self.current_count_hits[self.current_player] += 1
             if success:
@@ -107,6 +100,16 @@ class HitsMatch(Match):
 
     def is_player_wins_hole(self, current_hole, current_player):
         return self.table[current_hole][current_player] is not None
+
+    def change_hole(self):
+        if self.current_hole == self.countHoles:
+            self.finished = True
+            return
+        self.current_count_hits = {
+            player.name: 0 for player in self.players
+        }
+        self.changed_player = True
+        self.current_hole += 1
 
 
 class HolesMatch(Match):
