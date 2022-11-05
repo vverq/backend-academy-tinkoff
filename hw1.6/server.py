@@ -1,7 +1,10 @@
 import argparse
+import json
+import pathlib
 import socket
 import uuid
 from datetime import datetime, timedelta
+from json import JSONEncoder
 from queue import Queue
 
 
@@ -32,6 +35,11 @@ class TaskQueue(Queue):
                 task.getting_time = datetime.now()
                 return task
         return None
+
+
+class TaskQueueEncoder(JSONEncoder):
+    def default(self, o):
+        return o.__dict__
 
 
 class TaskQueueServer:
@@ -88,13 +96,29 @@ class TaskQueueServer:
         else:
             connection.send(str.encode("ERROR"))
 
-    def save(self):
-        pass
+    def save(self, queue_name, path, connection):
+        if self.is_queue_exists(queue_name):
+            path = pathlib.Path(path) / queue_name
+            with path.open("w", encoding="utf-8") as f:
+                f.write(json.dumps(self.queues[queue_name].tasks, cls=TaskQueueEncoder))
+            with pathlib.Path("meta_info").open("w", encoding="utf-8") as f:
+                f.write(f"{queue_name} {path}")
+            connection.send(str.encode("OK"))
+        else:
+            connection.send(str.encode("ERROR"))
 
     def is_queue_exists(self, queue_name):
         return queue_name in self.queues.keys()
 
     def run(self):
+        path_meta = pathlib.Path("meta_info")
+        with path_meta.open("r", encoding="utf-8") as meta_file:
+            for line in meta_file:
+                queue_name, path = line.split(" ")
+                filepath = pathlib.Path(path)
+                with filepath.open("r", encoding="utf-8") as file:
+                    self.queues[queue_name] = TaskQueue(self.timeout)
+                    self.queues[queue_name].tasks = json.load(file)
         self.sock.bind((self.ip, self.port))
         self.sock.listen(1)
         while True:
@@ -108,17 +132,25 @@ class TaskQueueServer:
             # todo тут пригодился бы паттерн-матчинг,
             #  но я все еще сижу на питоне 3.9...
             if type_command == "ADD":
+                if len(command) < 4:
+                    connection.send(str.encode("ERROR"))
                 self.add_task_in_queue(
                     queue_name, Task(command[2], command[3]), connection
                 )
             elif type_command == "GET":
                 self.get_task_from_queue(queue_name, connection)
             elif type_command == "ACK":
+                if len(command) < 3:
+                    connection.send(str.encode("ERROR"))
                 self.ack_task(queue_name, command[2], connection)
             elif type_command == "IN":
+                if len(command) < 3:
+                    connection.send(str.encode("ERROR"))
                 self.check_is_task_in_queue(queue_name, command[2], connection)
             elif type_command == "SAVE":
-                self.save()
+                if len(command) < 3:
+                    connection.send(str.encode("ERROR"))
+                self.save(queue_name, command[2], connection)
             else:
                 connection.send(str.encode("ERROR"))
             connection.close()

@@ -89,6 +89,14 @@ class ServerBaseTest(TestCase):
         self.assertEqual(second_task_id + b" 5 12345", self.send(b"GET 1"))
         self.assertEqual(b"NONE", self.send(b"GET 1"))
 
+    def test_save(self):
+        first_task_id = self.send(b"ADD 1 5 12345")
+        save_command = b"SAVE 1 C:/Users/user/backend-academy-tinkoff/hw1.6"
+        self.assertEqual(b"OK", self.send(save_command))
+        self.tearDown()
+        self.setUp()
+        self.assertEqual(first_task_id + b" 5 12345", self.send(b"GET 1"))
+
 
 if __name__ == "__main__":
     unittest.main()
