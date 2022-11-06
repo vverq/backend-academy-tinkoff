@@ -8,8 +8,8 @@ class Player:
 
 
 class Match:
-    def __init__(self, countHoles: int, players: List[Player]):
-        self.countHoles = countHoles
+    def __init__(self, count_holes: int, players: List[Player]):
+        self.countHoles = count_holes
         self.players = players
         self.finished = False
         self.changed_player = True
@@ -31,14 +31,17 @@ class Match:
     def hit(self, success=False) -> bool:
         pass
 
-    def get_winners(self) -> List[Player]:
+    def get_winners(self, is_max_score=False) -> List[Player]:
         if self.finished:
             result = {player: 0 for player in self.players}
             for i in range(1, self.countHoles+1):
                 for player in self.players:
                     player_number = self.players_numbers[player.name]
                     result[player] += self.table[i][player_number]
-            winner_score = min(result.values())
+            if is_max_score:
+                winner_score = max(result.values())
+            else:
+                winner_score = min(result.values())
             winners = [
                 player for player in result
                 if result[player] == winner_score
@@ -60,8 +63,8 @@ class Match:
 
 
 class HitsMatch(Match):
-    def __init__(self, countHoles: int, players: List[Player]):
-        super().__init__(countHoles, players)
+    def __init__(self, count_holes: int, players: List[Player]):
+        super().__init__(count_holes, players)
         self.max_hits_count = 10
 
     def hit(self, success=False):
@@ -113,6 +116,46 @@ class HitsMatch(Match):
         self.current_hole += 1
         return True
 
+    def get_winners(self, is_max_score=False) -> List[Player]:
+        return super().get_winners(is_max_score=is_max_score)
+
 
 class HolesMatch(Match):
-    pass
+    def __init__(self, count_holes: int, players: List[Player]):
+        super().__init__(count_holes, players)
+        self.current_player = 0
+        self.current_count_rounds = 0
+        self.number_player = 0
+
+    def hit(self, success=False):
+        self.current_player %= len(self.players)
+        self.number_player %= len(self.players)
+        if self.finished:
+            raise RuntimeError("Матч закончился, игрок не может делать удар")
+        if success:
+            self.table[self.current_hole][self.current_player] = 1
+        if 1 in self.table[self.current_hole] and self.number_player == 2:
+            current_hole_result = self.table[self.current_hole]
+            self.table[self.current_hole] = list(map(
+                lambda x: 0 if x is None else 1,
+                current_hole_result
+            ))
+            self.current_player += 1
+            self.current_hole += 1
+            self.current_count_rounds = 0
+            if self.current_hole > self.countHoles:
+                self.finished = True
+        elif self.current_count_rounds == 9 and self.number_player == 2:
+            self.table[self.current_hole] = [0 for _ in self.players]
+            self.current_count_rounds = 0
+            self.current_hole += 1
+            self.current_player += 1
+            if self.current_hole > self.countHoles:
+                self.finished = True
+        elif self.number_player == 2:
+            self.current_count_rounds += 1
+        self.current_player += 1
+        self.number_player += 1
+
+    def get_winners(self, is_max_score=True) -> List[Player]:
+        return super().get_winners(is_max_score=is_max_score)
