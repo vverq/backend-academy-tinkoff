@@ -1,5 +1,6 @@
 import os
 
+import pytest
 
 HTTP_404_ERROR_TEXT = "Пришел 404, скорее всего ничего не нашли\n"
 
@@ -73,13 +74,8 @@ def test_search_nonexistent(capfd):
     assert HTTP_404_ERROR_TEXT == out.replace("\r", "")
 
 
-def test_search_empty_string(capfd):
-    os.system("python -m tv_program.py  ")
-    out, err = capfd.readouterr()
-    assert HTTP_404_ERROR_TEXT == out.replace("\r", "")
-
-
-def test_search_quotation_mark(capfd):
-    os.system('python -m tv_program.py "')
+@pytest.mark.parametrize("search_str", [" ", "'"])
+def test_search_invalid_string(capfd, search_str):
+    os.system(f"python -m tv_program.py {search_str}")
     out, err = capfd.readouterr()
     assert HTTP_404_ERROR_TEXT == out.replace("\r", "")

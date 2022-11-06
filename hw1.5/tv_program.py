@@ -1,10 +1,10 @@
 import requests
 import sys
-import os
-import pathlib
+from pathlib import Path
 from pydantic import BaseModel, Field
 from cachetools import TTLCache, cached
 from datetime import datetime, timedelta
+from collections import defaultdict
 
 URL = "https://api.tvmaze.com/singlesearch/shows?"
 
@@ -17,35 +17,33 @@ class TvProgram(BaseModel):
 
 
 class TvProgramCache(TTLCache):
-    def __init__(self, maxsize, ttl, time_start):
+    def __init__(self, maxsize, ttl):
         super().__init__(maxsize, ttl)
-        self.time_start = time_start
-        self.path = pathlib.Path("cached_search_results")
+        self.path = Path("cached_search_results")
+        self.time_latest_search = defaultdict(datetime.now)
 
     def __getitem__(self, key: str, **kwargs):
-        for cached_result_file in self.path.iterdir():
-            if cached_result_file.name == key[0]:
-                TvProgram.parse_file(cached_result_file)
+        file = Path(self.path / key[0])
+        if file.is_file():
+            TvProgram.parse_file(file)
         return self.__missing__(key)
 
     def __setitem__(self, key: str, value: TvProgram, **kwargs):
-        if datetime.now() >= self.time_start + self.ttl:
+        program_name = key[0]
+        if datetime.now() >= self.time_latest_search[program_name] + self.ttl:
             self.__delitem__(key)
-        new_file_path = self.path / key[0]
-        with new_file_path.open("w", encoding="utf-8") as file:
-            file.write(value.json())
+        self.time_latest_search[program_name] = datetime.now()
+        new_file_path = self.path / program_name
+        Path(new_file_path).write_text(value.json())
 
     def __delitem__(self, key: str, **kwargs):
-        # почему-то если использую self.path.unlink(filename),
-        # то падает PermissionError и я не смогла это побороть,
-        # поэтому стала использовать привычный os.remove и с ним ок
-        os.remove(self.path / key[0])
+        Path(self.path / key[0]).unlink()
 
 
-CACHE = TvProgramCache(30, timedelta(minutes=5), datetime.now())
+cache = TvProgramCache(30, timedelta(minutes=5))
 
 
-@cached(cache=CACHE)
+@cached(cache=cache)
 def search(program_name: str):
     params = {"q": program_name.lower()}
     try:
@@ -62,7 +60,10 @@ def search(program_name: str):
         raise SystemExit(error)
     except requests.RequestException as error:
         raise SystemExit(error)
-    response_json = response.json()
+    try:
+        response_json = response.json()
+    except AttributeError:
+        raise AttributeError("Ожидали, что в ответ придет json")
     try:
         tv_program = TvProgram(
             name=response_json["name"],
