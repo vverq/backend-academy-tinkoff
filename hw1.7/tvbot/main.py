@@ -104,7 +104,7 @@ class TvProgramBot:
         last_update_id = None
         while True:
             updates = self.get_updates(last_update_id)
-            if updates:
+            if updates["ok"]:
                 result = updates["result"]
                 if result:
                     self.process_updates(result)
