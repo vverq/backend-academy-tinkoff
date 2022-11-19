@@ -75,7 +75,7 @@ requests = "*"
 type = "git"
 url = "https://github.com/vverq/backend-academy-tinkoff.git"
 reference = "homework1.10"
-resolved_reference = "77f250721d9dac3a16e781df0d96176114a83cd8"
+resolved_reference = "e3e6182e22e8ea226f5d1bc870c3efb44d90d7bc"
 subdirectory = "hw1.7"
 [[package]]
 name = "typing-extensions"
