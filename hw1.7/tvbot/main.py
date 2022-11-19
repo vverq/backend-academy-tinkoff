@@ -100,20 +100,21 @@ class TvProgramBot:
             self.send_message(message["chat"]["id"], result)
             return result
 
-
-bot = TvProgramBot("token_telegram_bot")
+    def start(self):
+        last_update_id = None
+        while True:
+            updates = self.get_updates(last_update_id)
+            if updates:
+                result = updates["result"]
+                if result:
+                    self.process_updates(result)
+                    last_update_id = result[0]["update_id"] + 1
+            time.sleep(3)
 
 
 def main():
-    last_update_id = None
-    while True:
-        updates = bot.get_updates(last_update_id)
-        if updates:
-            result = updates["result"]
-            if result:
-                bot.process_updates(result)
-                last_update_id = result[0]["update_id"] + 1
-        time.sleep(3)
+    bot = TvProgramBot("token_telegram_bot")
+    bot.start()
 
 
 if __name__ == "__main__":
