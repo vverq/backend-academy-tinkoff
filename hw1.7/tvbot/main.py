@@ -78,7 +78,7 @@ class TvProgramBot:
         return response.json()
 
     def get_updates(self, last_update_id=None):
-        url = bot.url + "/getUpdates"
+        url = self.url + "/getUpdates"
         new_url = url + f"?offset={last_update_id}" if last_update_id else url
         updates = json.loads(requests.get(new_url).content)
         return updates
