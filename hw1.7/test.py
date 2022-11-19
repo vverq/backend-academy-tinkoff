@@ -1,37 +1,17 @@
-import pytest
-import time
-import requests
-import subprocess
-
-from main import TvProgramBotErrorMessages
+from main import TvProgramBotErrorMessages, TvProgramBot
 
 
-URL = "http://127.0.0.1:5000/"
-
-
-@pytest.fixture
-def setup_and_teardown():
-    server = subprocess.Popen(["python3", "main.py"])
-    time.sleep(5)
-    yield
-    server.terminate()
-    server.wait()
-
-
-def send_correct_message(text):
-    data = {"message": {"chat": {"id": 123}, "text": text}}
-    return requests.post(URL, json=data)
-
-
-def send_incorrect_message_without_text():
-    data = {"message": {"chat": {"id": 123}}}
-    return requests.post(URL, json=data)
-
-
-@pytest.mark.usefixtures("setup_and_teardown")
 class TestBot:
-    def test_search_existing_program(self):
-        response = send_correct_message("friends")
+    bot = TvProgramBot("token")
+
+    def create_updates(self, t: str):
+        return [{"update_id": 1, "message": {"chat": {"id": 0}, "text": t}}]
+
+    def create_invalid_updates(self):
+        return [{"update_id": 1, "message": {"chat": {"id": 0}}}]
+
+    def test_search_existing_program_by_full_name(self):
+        response = self.bot.process_updates(self.create_updates("friends"))
         expected_response = (
             "Name: Friends\n"
             "Network Name: NBC\n"
@@ -45,20 +25,34 @@ class TestBot:
             "fights, laughs, tears and surprises as they learn what it "
             "really means to be a friend.</p>"
         )
-        assert response.status_code == 200
-        assert response.text == expected_response
+        assert response == expected_response
+
+    def test_search_existing_program_by_part_name(self):
+        response = self.bot.process_updates(self.create_updates("quee"))
+        expected_response = (
+            "Name: Queen Sugar\n"
+            "Network Name: Oprah Winfrey Network\n"
+            "Network Country Name: United States\n"
+            "Summary: <p>The contemporary drama <b>Queen Sugar</b>, set in the"
+            " fictional town of Saint Josephine, Louisiana, chronicles the "
+            "lives and loves of the estranged Bordelon siblings: Nova, a "
+            "worldly-wise journalist and activist; Charley, the savvy wife "
+            "and manager of a professional basketball star; and Ralph Angel, "
+            "a formerly incarcerated young father in search of redemption. "
+            "After a family tragedy, the Bordelons must navigate the triumphs "
+            "and struggles of their complicated lives in order to run a "
+            "struggling sugarcane farm in the Deep South.</p>"
+        )
+        assert response == expected_response
+
+    def test_search_without_full_info_program(self):
+        response = self.bot.process_updates(self.create_updates("fr"))
+        assert response == TvProgramBotErrorMessages.NO_FULL_INFO.value
 
     def test_search_nonexistent_program(self):
-        response = send_correct_message("123456")
-        assert response.status_code == 200
-        assert response.text == TvProgramBotErrorMessages.NOT_FOUND.value
-
-    def test_search_program_without_full_info(self):
-        response = send_correct_message("friend")
-        assert response.status_code == 200
-        assert response.text == TvProgramBotErrorMessages.NO_FULL_INFO.value
+        response = self.bot.process_updates(self.create_updates("123456"))
+        assert response == TvProgramBotErrorMessages.NOT_FOUND.value
 
     def test_get_incorrect_message(self):
-        response = send_incorrect_message_without_text()
-        assert response.status_code == 200
-        assert response.text == TvProgramBotErrorMessages.NO_TEXT.value
+        response = self.bot.process_updates(self.create_invalid_updates())
+        assert response == TvProgramBotErrorMessages.NO_TEXT.value

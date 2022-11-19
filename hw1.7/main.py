@@ -71,7 +71,7 @@ class TvProgramBot:
         self.token = os.getenv(token_name)
         self.url = f"https://api.telegram.org/bot{self.token}"
 
-    def send_message(self, chat_id, text):
+    def send_message(self, chat_id: str, text: str):
         url = self.url + "/sendMessage"
         answer = {"chat_id": chat_id, "text": text}
         response = requests.post(url, json=answer)
@@ -83,7 +83,7 @@ class TvProgramBot:
         updates = json.loads(requests.get(new_url).content)
         return updates
 
-    def process_updates(self, updates):
+    def process_updates(self, updates: dict):
         for update in updates:
             message = update["message"]
             if "text" in message.keys():
@@ -98,6 +98,7 @@ class TvProgramBot:
             else:
                 result = TvProgramBotErrorMessages.NO_TEXT.value
             self.send_message(message["chat"]["id"], result)
+            return result
 
 
 bot = TvProgramBot("token_telegram_bot")
