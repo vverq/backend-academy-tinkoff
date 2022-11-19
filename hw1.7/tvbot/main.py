@@ -87,7 +87,6 @@ class TvProgramBot:
             message = update["message"]
             if "text" in message.keys():
                 text = message["text"]
-                print(text)
                 try:
                     result = tvProgramService.search(text)
                 except SystemExit:
