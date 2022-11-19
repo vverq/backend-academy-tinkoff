@@ -1,9 +1,9 @@
+import json
 import os
+import time
 from enum import Enum
 
 import requests
-from flask import Flask
-from flask import request
 from pydantic import BaseModel, Field
 
 
@@ -63,52 +63,56 @@ class TvProgramBotErrorMessages(Enum):
     NO_TEXT = "Некорректное сообщение, отправьте текстовое сообщение"
 
 
+tvProgramService = TvProgramService()
+
+
 class TvProgramBot:
     def __init__(self, token_name: str):
         self.token = os.getenv(token_name)
         self.url = f"https://api.telegram.org/bot{self.token}"
 
-    def send_message(self, request: requests.Request, text="Wait..."):
+    def send_message(self, chat_id, text):
         url = self.url + "/sendMessage"
-        chat_id = request.json["message"]["chat"]["id"]
         answer = {"chat_id": chat_id, "text": text}
         response = requests.post(url, json=answer)
         return response.json()
 
-    @staticmethod
-    def get_message(request: requests.Request):
-        message = request.json()["message"]
-        if "text" in message.keys():
-            return message["text"]
-        return
+    def get_updates(self, last_update_id=None):
+        url = bot.url + "/getUpdates"
+        new_url = url + f"?offset={last_update_id}" if last_update_id else url
+        updates = json.loads(requests.get(new_url).content)
+        return updates
+
+    def process_updates(self, updates):
+        for update in updates:
+            message = update["message"]
+            if "text" in message.keys():
+                text = message["text"]
+                print(text)
+                try:
+                    result = tvProgramService.search(text)
+                except SystemExit:
+                    result = TvProgramBotErrorMessages.NOT_FOUND.value
+                except ValueError:
+                    result = TvProgramBotErrorMessages.NO_FULL_INFO.value
+            else:
+                result = TvProgramBotErrorMessages.NO_TEXT.value
+            self.send_message(message["chat"]["id"], result)
 
 
-app = Flask(__name__)
 bot = TvProgramBot("token_telegram_bot")
-tvProgramService = TvProgramService()
-
-
-@app.route("/", methods=["GET", "POST"])
-def receive_update():
-    if request.method == "POST":
-        message = bot.get_message(request)
-        if message:
-            try:
-                result = tvProgramService.search(message)
-            except SystemExit:
-                result = TvProgramBotErrorMessages.NOT_FOUND.value
-            except ValueError:
-                result = TvProgramBotErrorMessages.NO_FULL_INFO.value
-        else:
-            result = TvProgramBotErrorMessages.NO_TEXT.value
-        bot.send_message(request, result)
-        return result
-    return {"ok": True}
 
 
 def main():
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="127.0.0.1", port=port, debug=True)
+    last_update_id = None
+    while True:
+        updates = bot.get_updates(last_update_id)
+        if updates:
+            result = updates["result"]
+            if result:
+                bot.process_updates(result)
+                last_update_id = result[0]["update_id"] + 1
+        time.sleep(3)
 
 
 if __name__ == "__main__":
