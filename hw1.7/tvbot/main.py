@@ -67,9 +67,8 @@ tvProgramService = TvProgramService()
 
 
 class TvProgramBot:
-    def __init__(self, token_name: str):
-        self.token = os.getenv(token_name)
-        self.url = f"https://api.telegram.org/bot{self.token}"
+    def __init__(self, token: str):
+        self.url = f"https://api.telegram.org/bot{token}"
 
     def send_message(self, chat_id: str, text: str):
         url = self.url + "/sendMessage"
