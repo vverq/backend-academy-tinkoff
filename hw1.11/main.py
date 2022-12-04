@@ -13,12 +13,26 @@ class Strategy(ABC):
 class Parser:
     strategy: Strategy
 
-    def __init__(self, strategy: Strategy, url: str) -> None:
-        self.strategy = strategy
+    def __init__(self, url: str) -> None:
+        if re.search("habr.com", url):
+            self.strategy = StrategyHabr()
+        elif re.search("youtube.com", url):
+            self.strategy = StrategyYouTube()
+        elif re.search("music.yandex.ru", url):
+            self.strategy = StrategyYandexMusic()
+        else:
+            self.strategy = StrategyDefault()
         self.html = request.urlopen(url).read().decode("utf8")
 
     def get_title(self) -> str:
         return self.strategy.parse(self.html)
+
+
+class StrategyDefault(Strategy):
+    def parse(self, html: str) -> str:
+        parser = bs4.BeautifulSoup(html, "html.parser")
+        tag = parser.find("title")
+        return tag.text
 
 
 class StrategyYouTube(Strategy):
@@ -34,10 +48,9 @@ class StrategyYouTube(Strategy):
 class StrategyYandexMusic(Strategy):
     def parse(self, html: str) -> str:
         parser = bs4.BeautifulSoup(html, "html.parser")
-        tag = parser.find("title")
+        tag = parser.find("link", {"type": "application/json+oembed"})
         if tag:
-            title = re.search("(.+) слушать онлайн", tag.text)
-            return title.group(1) if title else ""
+            return tag["title"]
         return ""
 
 
@@ -56,9 +69,9 @@ if __name__ == "__main__":
     youtube_url = "https://www.youtube.com/watch?v=90RLzVUuXe4"
     habr_url = "https://habr.com/ru/post/280238/"
 
-    youtube_parser = Parser(StrategyYouTube(), youtube_url)
-    yandex_music_parser = Parser(StrategyYandexMusic(), yandex_url)
-    habr_parser = Parser(StrategyHabr(), habr_url)
+    youtube_parser = Parser(youtube_url)
+    yandex_music_parser = Parser(yandex_url)
+    habr_parser = Parser(habr_url)
 
     print(youtube_parser.get_title())
     print(yandex_music_parser.get_title())
