@@ -13,6 +13,10 @@ process_a = multiprocessing.Process(target=a.run)
 process_b = multiprocessing.Process(target=b.run)
 process_c = multiprocessing.Process(target=c.run)
 
+pathlib.Path(a.directory).mkdir(parents=True, exist_ok=True)
+pathlib.Path(b.directory).mkdir(parents=True, exist_ok=True)
+pathlib.Path(c.directory).mkdir(parents=True, exist_ok=True)
+
 path_a = pathlib.Path(a.directory).joinpath("file_a")
 path_b = pathlib.Path(a.directory).joinpath("file_b")
 path_c = pathlib.Path(a.directory).joinpath("file_c")

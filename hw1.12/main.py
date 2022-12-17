@@ -1,10 +1,10 @@
 import asyncio
 import multiprocessing
 import pathlib
+import aiohttp.web
 from aiohttp import web
 from concurrent.futures import ThreadPoolExecutor
 from yaml import safe_load
-import requests
 
 
 class Daemon:
@@ -14,20 +14,23 @@ class Daemon:
             data = safe_load(file)
             self.port = data["port"]
             self.directory = data["directory"]
-            self.nodes = data["nodes"]
+            self.nodes = dict(data["nodes"])
             self.save_file_from_other = data["save_file_from_other"]
             self.app = web.Application()
             self.app.add_routes([web.get("/{name}", self.get_file_content)])
-            self.app.add_routes([web.get("/other_nodes_files/{name}", self.get_file_content_by_other_node)])
+            self.app.add_routes(
+                [web.get("/other_nodes_files/{name}", self.get_file_by_other)]
+            )
 
     def run(self):
         web.run_app(self.app, host="localhost", port=self.port)
 
-    async def get_file_content_by_other_node(self, request: web.Request):
+    async def get_file_by_other(self, request: web.Request):
         filename = str(request.match_info.get("name"))
         file_content = await read_file(self.directory, filename)
         if file_content:
             return web.Response(text=str(file_content))
+        return web.Response()
 
     async def get_file_content(self, request: web.Request):
         filename = str(request.match_info.get("name"))
@@ -35,11 +38,17 @@ class Daemon:
         if file_content:
             return web.Response(text=str(file_content))
         else:
-            for node in self.nodes:
-                file_content = requests.get(f'{node["host"]}:{node["port"]}/other_nodes_files/{filename}')
-                if file_content:
-                    break
+            for _, node in self.nodes.items():
+                async with aiohttp.ClientSession(
+                    f'http://{node["host"]}:{node["port"]}'
+                ) as session:
+                    url = f"/other_nodes_files/{filename}"
+                    async with session.get(url) as resp:
+                        if resp.status == 200:
+                            file_content = await resp.content.read()
+                            break
             if file_content:
+                file_content = file_content.decode()
                 if self.save_file_from_other:
                     await write_file(self.directory, filename, file_content)
                 return web.Response(text=file_content)
