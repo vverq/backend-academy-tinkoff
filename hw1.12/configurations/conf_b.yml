@@ -1,0 +1,10 @@
+port: 5557
+directory: /tmp/B
+nodes:
+  A:
+    host: localhost
+    port: 5556
+  C:
+    host: localhost
+    port: 5558
+save_file_from_other: True
