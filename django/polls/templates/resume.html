@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+     <title>Резюме</title>
+
+     <style type="text/css">
+        * { margin: 0; padding: 0; }
+        body { font: 16px Helvetica, Sans-Serif; line-height: 24px; background: url(images/noise.jpg); }
+        .clear { clear: both; }
+        #page-wrap { width: 800px; margin: 40px auto 60px; }
+        #pic { float: right; margin: -30px 0 0 0; }
+        h1 { margin: 0 0 16px 0; padding: 0 0 16px 0; font-size: 42px; font-weight: bold; letter-spacing: -2px; border-bottom: 1px solid #999; }
+        h2 { font-size: 20px; margin: 0 0 6px 0; position: relative; }
+        h2 span { position: absolute; bottom: 0; right: 0; font-style: italic; font-family: Georgia, Serif; font-size: 16px; color: #999; font-weight: normal; }
+        p { margin: 0 0 16px 0; }
+        a { color: #999; text-decoration: none; border-bottom: 1px dotted #999; }
+        a:hover { border-bottom-style: solid; color: black; }
+        ul { margin: 0 0 32px 17px; }
+        #objective { width: 100%; float: left; }
+        #objective p { font-family: Georgia, Serif; font-style: italic; color: #666; }
+        dt { font-style: italic; font-weight: bold; font-size: 18px; text-align: right; padding: 0 26px 0 0; width: 150px; float: left; height: 100px; border-right: 1px solid #999;  }
+        dd { width: 600px; float: right; }
+        dd.clear { float: none; margin: 0; height: 15px; }
+     </style>
+</head>
+
+<body>
+    <div id="page-wrap">
+        <div id="contact-info" class="vcard">
+            <h1 class="fn">Кузьмина Анна Алексеевна</h1>
+            <p>
+                Телефон: <span class="tel">8-(XXX)-XXX-XX-XX</span><br />
+                Email: <a class="email" href="mailto:kuzmina.annna.1863@gmail.com">kuzmina.annna.1863@gmail.com</a>
+            </p>
+        </div>
+
+        <div id="objective">
+            <p>
+                Изучала как программирование, так и тестирование ПО. Сейчас занимаюсь в основном тестированием в качестве работы, но параллельно продолжаю изучать программирование.
+            </p>
+        </div>
+        <div class="clear"></div>
+        <dl>
+            <dd class="clear"></dd>
+            <dt>Опыт работы</dt>
+            <dd>
+                <h2>СКБ Контур: 2021 - ...</h2>
+                <p><strong>Middle Специалист по тестированию:</strong> Тестирую веб-приложение, пишу автотесты на Selenium (C#)</dd>
+
+            <dd class="clear"></dd>
+            <dt>Образование</dt>
+            <dd>
+                <h2>Уральский Федеральный Университет: 2018-2024</h2>
+                <p><strong>Бакалавр:</strong> Фундаментальная информатика и информационные технологии<br />
+                   <strong>Магистр:</strong> Фундаментальная информатика и информационные технологии</p>
+            </dd>
+
+            <dd class="clear"></dd>
+
+            <dt>Доп. курсы</dt>
+            <dd>
+                <h2>Тинькофф Финтех</h2>
+                <p><strong>QA Engineering:</strong> Осваивала обеспечение качества, практиковала работу с Jira</p>
+
+                <h2>Образовательные программы СКБ-Контур</h2>
+                <p><strong>Курс “Тестирование ПО”</strong>: Изучала основы тестирования, практиковалась в написании багрепортов и тестировании web-сервисов, работала с YouTrack и осуществляла автоматизированное тестирование с помощью Selenium.</p>
+
+                <h2>Образовательные программы Naumen</h2>
+                <p><strong>Курс “Контроль качества ПО”:</strong> Изучала методы тестирования, осваивала тестирование мобильных приложений и нагрузочное тестирование c помощью Jmeter</p>
+                <p><strong>Курс “Аналитик в IT”:</strong> Работала над созданием стартапа, проверяла гипотезы, проводила интервью</p>
+            </dd>
+
+            <dd class="clear"></dd>
+
+            <dt>Технические умения</dt>
+            <dd>
+                <ul>
+                    <li>Знание Python, Java, JavaScript, CSS, HTML, C#</li>
+                    <li>Понимание принципов ООП и философии Agile</li>
+                    <li>Опыт работы с MSSQL, Linux, Bash,  CMD, Git</li>
+                </ul>
+            </dd>
+
+            <dd class="clear"></dd>
+
+            <dt>Другие умения</dt>
+            <dd>
+                <ul>
+                    <li>Умение варьировать сроки тестирования без потери качества</li>
+                    <li>Решение задач с высоким уровнем неопределенности</li>
+                    <li>Опыт стабильного улучшения процессов тестирования</li>
+                </ul>
+            </dd>
+
+            <dd class="clear"></dd>
+
+            <dt>Знание языков</dt>
+            <dd>
+                <ul>
+                    <li>Русский: родной</li>
+                    <li>Английский: B1, intermediate</li>
+                </ul>
+            </dd>
+
+            <dd class="clear"></dd>
+
+            <dd class="clear"></dd>
+
+            <dd><a href="{% url 'index' %}" class="btn btn-primary" style="margin-bottom:1rem">Демо</a></dd>
+
+            <dd class="clear"></dd>
+        </dl>
+
+        <div class="clear"></div>
+
+    </div>
+
+</body>
+
+</html>
